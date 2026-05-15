@@ -29,7 +29,7 @@ class MultiHeadAttention(nn.Module):
         scores = torch.matmul(Q, K.transpose(-2, -1))
         scores = scores / math.sqrt(self.d_k)
 
-        if mask:
+        if mask is not None:
             scores = scores.masked_fill(mask == 0, -1e9)
 
         atten_w = F.softmax(scores, dim=-1)
