@@ -75,7 +75,7 @@ class EncoderLayer(nn.Module):
 
     def forward(self, x, mask=None):
         norm_x = self.norm1(x)
-        atten_out, _ = self.mha(norm_x, norm_x, norm_x, mask)
+        atten_out = self.mha(norm_x, norm_x, norm_x, mask)
 
         x = x + self.dropout1(atten_out)
 
