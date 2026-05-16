@@ -98,7 +98,9 @@ class Transformer(nn.Module):
             tgt_vocab_size, max_seq_len, d_model, num_layers, num_heads, d_ff, dropout
         )
 
-        self.projection = nn.Linear(d_model, tgt_vocab_size)
+        # weight tying
+        self.projection = nn.Linear(d_model, tgt_vocab_size, bias=False)
+        self.projection.weight = self.decoder.embedding.weight
 
     def forward(
         self, src: torch.Tensor, tgt: torch.Tensor, src_mask=None, tgt_mask=None
