@@ -109,3 +109,43 @@ class PositionalEncoding(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # x: (batch_size, seq_len, d_model)
         return x + self.pe[:, : x.size(1)]
+
+
+class DecoderLayer(nn.Module):
+    def __init__(self, d_model: int, num_heads: int, d_ff: int, dropout: float):
+        super().__init__()
+        self.self_attn = MultiHeadAttention(d_model, num_heads)
+        self.cross_attn = MultiHeadAttention(d_model, num_heads)
+
+        self.ffn = PositionWiseFeedForward(d_model, d_ff, dropout)
+
+        self.norm1 = nn.LayerNorm(d_model)
+        self.norm2 = nn.LayerNorm(d_model)
+        self.norm3 = nn.LayerNorm(d_model)
+
+        self.dropout1 = nn.Dropout(p=dropout)
+        self.dropout2 = nn.Dropout(p=dropout)
+        self.dropout3 = nn.Dropout(p=dropout)
+
+    def forward(self, x, memory, tgt_mask=None, src_mask=None):
+        """
+        x - тензор из декодера (batch_size, tgt_len, d_model)
+        memory - выход энкодера (batch_size, src_len, d_model)
+        """
+
+        # Self-Attention
+        norm_x = self.norm1(x)
+        attn_out1 = self.self_attn(norm_x, norm_x, norm_x, tgt_mask)
+        x = x + self.dropout1(attn_out1)
+
+        # Cross-Attention
+        norm_x2 = self.norm2(x)
+        attn_out2 = self.cross_attn(norm_x2, memory, memory, src_mask)
+        x = x + self.dropout2(attn_out2)
+
+        # FFN
+        norm_x3 = self.norm3(x)
+        ffn_out = self.ffn(norm_x3)
+        x = x + self.dropout3(ffn_out)
+
+        return x
