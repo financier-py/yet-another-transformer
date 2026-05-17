@@ -98,6 +98,9 @@ class Transformer(nn.Module):
             tgt_vocab_size, max_seq_len, d_model, num_layers, num_heads, d_ff, dropout
         )
 
+        # решил на задаче стихов потестить, поэтому будет weight tying допом
+        self.encoder.embedding.weight = self.decoder.embedding.weight
+
         # weight tying
         self.projection = nn.Linear(d_model, tgt_vocab_size, bias=False)
         self.projection.weight = self.decoder.embedding.weight
