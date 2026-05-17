@@ -22,13 +22,17 @@ class MultiHeadAttention(nn.Module):
     def split_heads(self, x: torch.Tensor):
         batch_size, seq_len, d_model = x.size()
         x = x.reshape(batch_size, seq_len, self.num_heads, self.d_k)
-        x = x.transpose(1, 2)
+        x = x.transpose(1, 2)  # (batch_size, num_heads, seq_len, d_k)
         return x
 
     def scaled_dot_prod_atten(self, Q, K, V, mask=None):
-        scores = torch.matmul(Q, K.transpose(-2, -1))
+        scores = torch.matmul(
+            Q, K.transpose(-2, -1)
+        )  # (batch_size, num_heads, seq_len_q, seq_len_k)
         scores = scores / math.sqrt(self.d_k)
 
+        # запрещаем смотреть в будущее для декодера
+        # также запрещаем Q смотреть на paddings ИМЕННО в K
         if mask is not None:
             scores = scores.masked_fill(mask == 0, -1e9)
 
